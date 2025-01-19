@@ -17,10 +17,16 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'template', 'index.html'));
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack); // Log the error
-  res.status(500).send('Something went wrong!');
+// Example folder routes
+app.get('/folders', (req, res) => {
+  // Simulate returning folders data
+  res.json([{ id: 1, name: 'Folder 1' }, { id: 2, name: 'Folder 2' }]);
+});
+
+app.post('/folders', (req, res) => {
+  const newFolder = req.body;
+  // Simulate creating a new folder
+  res.status(201).json(newFolder);
 });
 
 // Start the server

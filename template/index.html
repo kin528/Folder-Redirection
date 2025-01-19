@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folder Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Upload Folder Section -->
+        <div class="upload-folder">
+            <h1>Upload Your Folder</h1>
+            <p>Select a folder to upload:</p>
+            <input type="file" id="folderUpload" webkitdirectory multiple>
+            <button id="uploadButton">Upload Folder</button>
+        </div>
+
+        <!-- Create Folder Section -->
+        <div class="create-folder">
+            <h1>Create a New Folder</h1>
+            <button id="createFolderButton">Create Folder</button>
+        </div>
+
+        <!-- Status Section -->
+        <div id="status" class="status">
+            <h2>Status</h2>
+            <ul id="fileList"></ul>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

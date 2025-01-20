@@ -46,7 +46,7 @@ async function loadFolders(parentID = null, isDeleted = false) {
 function displayFolders(folders) {
   folderList.innerHTML = ""; // Clear existing list
   if (folders.length === 0) {
-    folderList.innerHTML = "<li>No folders found.</li>";
+    folderList.innerHTML = "<li>Empty.</li>";
     return;
   }
   folders.forEach((folder) => {

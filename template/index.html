@@ -8,27 +8,39 @@
 </head>
 <body>
     <div class="container">
-        <!-- Upload Folder Section -->
-        <div class="upload-folder">
-            <h1>Upload Your Folder</h1>
-            <p>Select a folder to upload:</p>
-            <input type="file" id="folderUpload" webkitdirectory multiple>
-            <button id="uploadButton">Upload Folder</button>
+        <!-- Login Section -->
+        <div id="authSection">
+            <h1>Login</h1>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <button id="loginButton">Login</button>
+            <button id="signupButton">Sign Up</button>
         </div>
 
-        <!-- Create Folder Section -->
-        <div class="create-folder">
-            <h1>Create a New Folder</h1>
-            <button id="createFolderButton">Create Folder</button>
-        </div>
+        <!-- Folder Management Section -->
+        <div id="folderSection" class="hidden">
+            <!-- Upload Folder Section -->
+            <div class="upload-folder">
+                <h1>Upload Your Folder</h1>
+                <p>Select a folder to upload:</p>
+                <input type="file" id="folderUpload" webkitdirectory multiple>
+                <button id="uploadButton">Upload Folder</button>
+            </div>
 
-        <!-- Status Section -->
-        <div id="status" class="status">
-            <h2>Status</h2>
-            <ul id="fileList"></ul>
+            <!-- Create Folder Section -->
+            <div class="create-folder">
+                <h1>Create a New Folder</h1>
+                <button id="createFolderButton">Create Folder</button>
+            </div>
+
+            <!-- Status Section -->
+            <div id="status" class="status">
+                <h2>Status</h2>
+                <ul id="fileList"></ul>
+            </div>
+            <button id="logoutButton">Logout</button>
         </div>
     </div>
     <script type="module" src="script.js"></script>
-
 </body>
 </html>

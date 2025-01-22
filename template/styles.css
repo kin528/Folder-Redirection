@@ -16,6 +16,41 @@ body {
     text-align: center;
 }
 
+/* Sign Up form styles */
+#signUpSection {
+    max-width: 400px;
+    margin: 50px auto;
+    text-align: center;
+}
+
+#signUpSection input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+#authSection button, #signUpSection button {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#authSection button:hover, #signUpSection button:hover {
+    background-color: #0056b3;
+}
+
+.hidden {
+    display: none;
+}
+
+
 #authSection input {
     width: 100%;
     padding: 10px;

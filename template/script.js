@@ -21,24 +21,12 @@ const auth = getAuth(app);
 
 // DOM Elements
 const authSection = document.getElementById("authSection");
-const signUpSection = document.getElementById("signUpSection");
 const folderSection = document.getElementById("folderSection");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const loginButton = document.getElementById("loginButton");
 const signupButton = document.getElementById("signupButton");
-const createAccountButton = document.getElementById("createAccountButton");
-const backToLoginButton = document.getElementById("backToLoginButton");
 const logoutButton = document.getElementById("logoutButton");
-
-// For Sign Up
-const usernameInput = document.getElementById("username");
-const signupEmailInput = document.getElementById("signupEmail");
-const signupPasswordInput = document.getElementById("signupPassword");
-
-// Delete Status button
-const deleteStatusButton = document.getElementById("deleteStatusButton");
-const fileList = document.getElementById("fileList");
 
 // Login event
 loginButton.addEventListener("click", async () => {
@@ -54,43 +42,18 @@ loginButton.addEventListener("click", async () => {
     }
 });
 
-// Show the sign-up form
-signupButton.addEventListener("click", () => {
-    authSection.classList.add("hidden");
-    signUpSection.classList.remove("hidden");
-});
-
-// Create account event
-createAccountButton.addEventListener("click", async () => {
-    const username = usernameInput.value;
-    const email = signupEmailInput.value;
-    const password = signupPasswordInput.value;
-
-    if (!username || !email || !password) {
-        alert("Please fill in all fields.");
-        return;
-    }
+// Signup event
+signupButton.addEventListener("click", async () => {
+    const email = emailInput.value;
+    const password = passwordInput.value;
 
     try {
         await createUserWithEmailAndPassword(auth, email, password);
         alert("Account created successfully!");
-        // You can store username in Firestore for the user
-        const user = auth.currentUser;
-        await addDoc(collection(db, "users"), {
-            uid: user.uid,
-            username: username,
-            email: email
-        });
     } catch (error) {
         console.error("Signup error:", error);
         alert("Signup failed. Please try again.");
     }
-});
-
-// Go back to login form
-backToLoginButton.addEventListener("click", () => {
-    signUpSection.classList.add("hidden");
-    authSection.classList.remove("hidden");
 });
 
 // Logout event
@@ -108,12 +71,10 @@ logoutButton.addEventListener("click", async () => {
 onAuthStateChanged(auth, (user) => {
     if (user) {
         authSection.classList.add("hidden");
-        signUpSection.classList.add("hidden");
         folderSection.classList.remove("hidden");
         loadFolders(); // Load folders after login
     } else {
         authSection.classList.remove("hidden");
-        signUpSection.classList.add("hidden");
         folderSection.classList.add("hidden");
     }
 });
@@ -137,9 +98,10 @@ async function loadFolders(parentID = null, isDeleted = false) {
 }
 
 function displayFolders(folders) {
-    fileList.innerHTML = ""; // Clear existing file list
+    const folderList = document.getElementById("fileList");
+    folderList.innerHTML = "";
     if (folders.length === 0) {
-        fileList.innerHTML = "<li>Empty.</li>";
+        folderList.innerHTML = "<li>Empty.</li>";
         return;
     }
     folders.forEach((folder) => {
@@ -151,7 +113,7 @@ function displayFolders(folders) {
             loadFolders(folder.id);
         });
 
-        fileList.appendChild(li);
+        folderList.appendChild(li);
     });
 }
 
@@ -163,11 +125,3 @@ uploadButton.addEventListener("click", () => {
     alert("Folder upload is not implemented yet.");
 });
 
-// Delete Status button functionality
-deleteStatusButton.addEventListener("click", () => {
-    fileList.innerHTML = ""; // Clear the file list in the status section
-    alert("Status deleted.");
-
-    // Reload folders after deletion to show the status list again
-    loadFolders(); // Load root folders (parentID = null)
-});

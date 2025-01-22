@@ -36,6 +36,10 @@ const usernameInput = document.getElementById("username");
 const signupEmailInput = document.getElementById("signupEmail");
 const signupPasswordInput = document.getElementById("signupPassword");
 
+// Delete Status button
+const deleteStatusButton = document.getElementById("deleteStatusButton");
+const fileList = document.getElementById("fileList");
+
 // Login event
 loginButton.addEventListener("click", async () => {
     const email = emailInput.value;
@@ -133,10 +137,9 @@ async function loadFolders(parentID = null, isDeleted = false) {
 }
 
 function displayFolders(folders) {
-    const folderList = document.getElementById("fileList");
-    folderList.innerHTML = "";
+    fileList.innerHTML = ""; // Clear existing file list
     if (folders.length === 0) {
-        folderList.innerHTML = "<li>Empty.</li>";
+        fileList.innerHTML = "<li>Empty.</li>";
         return;
     }
     folders.forEach((folder) => {
@@ -148,7 +151,7 @@ function displayFolders(folders) {
             loadFolders(folder.id);
         });
 
-        folderList.appendChild(li);
+        fileList.appendChild(li);
     });
 }
 
@@ -158,4 +161,13 @@ uploadButton.addEventListener("click", () => {
         return;
     }
     alert("Folder upload is not implemented yet.");
+});
+
+// Delete Status button functionality
+deleteStatusButton.addEventListener("click", () => {
+    fileList.innerHTML = ""; // Clear the file list in the status section
+    alert("Status deleted.");
+
+    // Reload folders after deletion to show the status list again
+    loadFolders(); // Load root folders (parentID = null)
 });

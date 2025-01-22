@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
 import { getFirestore, collection, query, where, getDocs, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+"https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -27,6 +28,7 @@ const passwordInput = document.getElementById("password");
 const loginButton = document.getElementById("loginButton");
 const signupButton = document.getElementById("signupButton");
 const logoutButton = document.getElementById("logoutButton");
+const folderList = document.getElementById("fileList");
 
 // Login event
 loginButton.addEventListener("click", async () => {
@@ -125,3 +127,44 @@ uploadButton.addEventListener("click", () => {
     alert("Folder upload is not implemented yet.");
 });
 
+// Listen for real-time updates from Firestore
+onSnapshot(collection(db, "folders"), snapshot => {
+  const folders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  displayFolders(folders);
+});
+
+// Create a new folder
+createFolderButton.addEventListener("click", async () => {
+  const folderName = prompt("Enter folder name:");
+  if (!folderName) return;
+
+  try {
+    const newFolder = {
+      name: folderName,
+      parentID: null, // Default to null if creating a root folder
+      isDeleted: false, // Default to false (not deleted)
+    };
+
+    // Add new folder to Firestore
+    await addDoc(collection(db, "folders"), newFolder);
+    console.log("Folder created:", newFolder);
+
+    // Reload folders after creating a new one
+    loadFolders();
+  } catch (error) {
+    console.error("Error creating folder:", error);
+    alert("Error creating folder. Please try again later.");
+  }
+});
+
+// Upload folder (dummy implementation for now)
+uploadButton.addEventListener("click", () => {
+  if (folderUploadInput.files.length === 0) {
+    alert("Please select a folder to upload.");
+    return;
+  }
+  alert("Folder upload is not implemented yet.");
+});
+
+// Initialize app and load root folders
+loadFolders(); // Load root folders (parentID = null)

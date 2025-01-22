@@ -9,6 +9,26 @@ body {
     color: #333;
 }
 
+/* Login form styles */
+#authSection {
+    max-width: 400px;
+    margin: 50px auto;
+    text-align: center;
+}
+
+#authSection input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.hidden {
+    display: none;
+}
+
+
 .container {
     max-width: 800px;
     margin: 0 auto;
@@ -62,3 +82,4 @@ li {
         margin-bottom: 10px;
     }
 }
+

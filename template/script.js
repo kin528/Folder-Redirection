@@ -166,5 +166,18 @@ uploadButton.addEventListener("click", () => {
   alert("Folder upload is not implemented yet.");
 });
 
+deleteStatusButton.addEventListener("click", async () => {
+    const statusId = ""; // Replace with the ID of the status you want to delete
+
+    try {
+        await deleteDoc(doc(db, "statuses", statusId));
+        alert("Status deleted successfully.");
+    } catch (error) {
+        console.error("Delete status error:", error);
+        alert("Failed to delete status. Please try again.");
+    }
+});
+
+
 // Initialize app and load root folders
 loadFolders(); // Load root folders (parentID = null)

@@ -2,7 +2,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
 import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
-import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-storage.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -19,7 +18,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const storage = getStorage(app);
 
 // DOM Elements
 const authSection = document.getElementById("authSection");
@@ -31,9 +29,7 @@ const signupButton = document.getElementById("signupButton");
 const logoutButton = document.getElementById("logoutButton");
 const folderList = document.getElementById("fileList");
 const deleteStatusButton = document.getElementById("deleteStatusButton");
-const uploadButton = document.getElementById("uploadButton");
 const createFolderButton = document.getElementById("createFolderButton");
-const folderUploadInput = document.getElementById("folderUpload");
 
 // Login event
 loginButton.addEventListener("click", async () => {
@@ -104,7 +100,7 @@ async function loadFolders(parentID = null, isDeleted = false) {
     }
 }
 
-// Display folders and allow picture upload
+// Display folders
 function displayFolders(folders) {
     folderList.innerHTML = "";
     if (folders.length === 0) {
@@ -115,59 +111,13 @@ function displayFolders(folders) {
         const li = document.createElement("li");
         li.textContent = folder.name;
 
-        // Add click event to open folder details and show upload button
+        // Add click event to open folder details
         li.addEventListener("click", () => {
             loadFolders(folder.id); // Load subfolders if any
-            displayUploadButton(folder.id, folder.name); // Display upload button for the folder
         });
 
         folderList.appendChild(li);
     });
-}
-
-// Function to display an upload button for pictures inside the folder
-function displayUploadButton(folderId, folderName) {
-    const folderDetails = document.createElement("div");
-    folderDetails.innerHTML = `
-        <h3>Folder: ${folderName}</h3>
-        <p>You can upload a picture to this folder:</p>
-        <input type="file" id="imageUpload-${folderId}" accept="image/*">
-        <button id="uploadImageButton-${folderId}">Upload Picture</button>
-    `;
-
-    // Clear the folder list and append folder details
-    folderList.innerHTML = "";
-    folderList.appendChild(folderDetails);
-
-    // Add event listener for the upload button
-    const uploadButton = document.getElementById(`uploadImageButton-${folderId}`);
-    const imageUploadInput = document.getElementById(`imageUpload-${folderId}`);
-
-    uploadButton.addEventListener("click", async () => {
-        if (imageUploadInput.files.length === 0) {
-            alert("Please select a picture to upload.");
-            return;
-        }
-
-        const file = imageUploadInput.files[0];
-        const fileName = file.name;
-
-        try {
-            const storageRef = ref(storage, `folders/${folderId}/${fileName}`);
-            await uploadBytes(storageRef, file);
-
-            alert(`Picture "${fileName}" uploaded successfully to folder "${folderName}".`);
-        } catch (error) {
-            console.error("Error uploading picture:", error);
-            alert("Failed to upload the picture. Please try again.");
-        }
-    });
-
-    // Add a back button to go back to the parent folder
-    const backButton = document.createElement("button");
-    backButton.textContent = "Back to Folders";
-    backButton.addEventListener("click", () => loadFolders());
-    folderList.appendChild(backButton);
 }
 
 // Delete Status button logic
@@ -200,21 +150,23 @@ deleteStatusButton.addEventListener("click", async () => {
     }
 });
 
-// Create a new folder
+// Create a new folder (with parent-child relationship)
 createFolderButton.addEventListener("click", async () => {
     const folderName = prompt("Enter folder name:");
     if (!folderName) return;
 
+    const parentFolderID = prompt("Enter the parent folder ID (leave empty for root):");
+
     try {
         const newFolder = {
             name: folderName,
-            parentID: null, // Default to null if creating a root folder
+            parentID: parentFolderID || null, // If no parent ID is provided, set it to null (root folder)
             isDeleted: false, // Default to false (not deleted)
         };
 
         await addDoc(collection(db, "folders"), newFolder);
         console.log("Folder created:", newFolder);
-        loadFolders();
+        loadFolders(); // Reload the folder list after creation
     } catch (error) {
         console.error("Error creating folder:", error);
         alert("Error creating folder. Please try again later.");

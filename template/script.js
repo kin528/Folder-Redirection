@@ -2,17 +2,17 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
 import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-storage.js";
+import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-storage.js";
 
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID",
-    measurementId: "YOUR_MEASUREMENT_ID"
+    apiKey: "AIzaSyCBMFUOq6QssSxefbojyhVF_lEHfI6UMlQ",
+    authDomain: "folderredirectionmacabenta.firebaseapp.com",
+    projectId: "folderredirectionmacabenta",
+    storageBucket: "folderredirectionmacabenta.appspot.com",
+    messagingSenderId: "580280550730",
+    appId: "1:580280550730:web:4ca111596bfb05676aadb3",
+    measurementId: "G-T1QBPYCCP5"
 };
 
 // Initialize Firebase
@@ -29,20 +29,13 @@ const passwordInput = document.getElementById("password");
 const loginButton = document.getElementById("loginButton");
 const signupButton = document.getElementById("signupButton");
 const logoutButton = document.getElementById("logoutButton");
-const fileList = document.getElementById("fileList");
+const folderList = document.getElementById("fileList");
 const deleteStatusButton = document.getElementById("deleteStatusButton");
+const uploadButton = document.getElementById("uploadButton");
 const createFolderButton = document.getElementById("createFolderButton");
-const folderContent = document.getElementById("folderContent");
-const currentFolderName = document.getElementById("currentFolderName");
-const imageUploadInput = document.getElementById("imageUpload");
-const uploadImageButton = document.getElementById("uploadImageButton");
-const imageList = document.getElementById("imageList");
+const folderUploadInput = document.getElementById("folderUpload");
 
-// State variables
-let selectedFolderId = null;
-let selectedFolderName = null;
-
-// Login
+// Login event
 loginButton.addEventListener("click", async () => {
     const email = emailInput.value;
     const password = passwordInput.value;
@@ -56,7 +49,7 @@ loginButton.addEventListener("click", async () => {
     }
 });
 
-// Signup
+// Signup event
 signupButton.addEventListener("click", async () => {
     const email = emailInput.value;
     const password = passwordInput.value;
@@ -70,7 +63,7 @@ signupButton.addEventListener("click", async () => {
     }
 });
 
-// Logout
+// Logout event
 logoutButton.addEventListener("click", async () => {
     try {
         await signOut(auth);
@@ -81,96 +74,158 @@ logoutButton.addEventListener("click", async () => {
     }
 });
 
-// Auth state listener
+// Auth state change listener
 onAuthStateChanged(auth, (user) => {
     if (user) {
         authSection.classList.add("hidden");
         folderSection.classList.remove("hidden");
-        loadFolders();
+        loadFolders(); // Load folders after login
     } else {
         authSection.classList.remove("hidden");
         folderSection.classList.add("hidden");
     }
 });
 
-// Load folders
-async function loadFolders() {
-    const querySnapshot = await getDocs(collection(db, "folders"));
-    const folders = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    displayFolders(folders);
+// Function to load folders
+async function loadFolders(parentID = null, isDeleted = false) {
+    try {
+        const folderQuery = query(
+            collection(db, "folders"),
+            where("parentID", "==", parentID),
+            where("isDeleted", "==", isDeleted)
+        );
+
+        const querySnapshot = await getDocs(folderQuery);
+        const folders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        displayFolders(folders);
+    } catch (error) {
+        console.error("Error loading folders:", error);
+        alert("Error loading folders. Please try again later.");
+    }
 }
 
+// Display folders and allow picture upload
 function displayFolders(folders) {
-    fileList.innerHTML = "";
+    folderList.innerHTML = "";
+    if (folders.length === 0) {
+        folderList.innerHTML = "<li>Empty.</li>";
+        return;
+    }
     folders.forEach((folder) => {
         const li = document.createElement("li");
         li.textContent = folder.name;
 
+        // Add click event to open folder details and show upload button
         li.addEventListener("click", () => {
-            selectedFolderId = folder.id;
-            selectedFolderName = folder.name;
-            currentFolderName.textContent = `Current Folder: ${folder.name}`;
-            folderContent.classList.remove("hidden");
-            loadImages(folder.id);
+            loadFolders(folder.id); // Load subfolders if any
+            displayUploadButton(folder.id, folder.name); // Display upload button for the folder
         });
 
-        fileList.appendChild(li);
+        folderList.appendChild(li);
     });
 }
 
-// Delete folder
-deleteStatusButton.addEventListener("click", async () => {
-    const folderName = prompt("Enter the folder name to delete:");
-    if (!folderName) return;
+// Function to display an upload button for pictures inside the folder
+function displayUploadButton(folderId, folderName) {
+    const folderDetails = document.createElement("div");
+    folderDetails.innerHTML = `
+        <h3>Folder: ${folderName}</h3>
+        <p>You can upload a picture to this folder:</p>
+        <input type="file" id="imageUpload-${folderId}" accept="image/*">
+        <button id="uploadImageButton-${folderId}">Upload Picture</button>
+    `;
 
-    const folderQuery = query(collection(db, "folders"), where("name", "==", folderName));
-    const querySnapshot = await getDocs(folderQuery);
+    // Clear the folder list and append folder details
+    folderList.innerHTML = "";
+    folderList.appendChild(folderDetails);
 
-    querySnapshot.forEach(async (docSnapshot) => {
-        await deleteDoc(doc(db, "folders", docSnapshot.id));
+    // Add event listener for the upload button
+    const uploadButton = document.getElementById(`uploadImageButton-${folderId}`);
+    const imageUploadInput = document.getElementById(`imageUpload-${folderId}`);
+
+    uploadButton.addEventListener("click", async () => {
+        if (imageUploadInput.files.length === 0) {
+            alert("Please select a picture to upload.");
+            return;
+        }
+
+        const file = imageUploadInput.files[0];
+        const fileName = file.name;
+
+        try {
+            const storageRef = ref(storage, `folders/${folderId}/${fileName}`);
+            await uploadBytes(storageRef, file);
+
+            alert(`Picture "${fileName}" uploaded successfully to folder "${folderName}".`);
+        } catch (error) {
+            console.error("Error uploading picture:", error);
+            alert("Failed to upload the picture. Please try again.");
+        }
     });
 
-    alert(`Folder "${folderName}" deleted successfully.`);
-    loadFolders();
+    // Add a back button to go back to the parent folder
+    const backButton = document.createElement("button");
+    backButton.textContent = "Back to Folders";
+    backButton.addEventListener("click", () => loadFolders());
+    folderList.appendChild(backButton);
+}
+
+// Delete Status button logic
+deleteStatusButton.addEventListener("click", async () => {
+    try {
+        const folderName = prompt("Enter the name of the folder you want to delete:");
+        if (!folderName) {
+            alert("No folder name entered. Operation cancelled.");
+            return;
+        }
+
+        const folderQuery = query(collection(db, "folders"), where("name", "==", folderName));
+        const querySnapshot = await getDocs(folderQuery);
+
+        if (querySnapshot.empty) {
+            alert(`No folder found with the name "${folderName}".`);
+            return;
+        }
+
+        querySnapshot.forEach(async (docSnapshot) => {
+            await deleteDoc(doc(db, "folders", docSnapshot.id));
+            console.log(`Deleted folder with ID: ${docSnapshot.id}`);
+        });
+
+        alert(`Folder "${folderName}" deleted successfully.`);
+        loadFolders();
+    } catch (error) {
+        console.error("Delete status error:", error);
+        alert("Failed to delete status. Please try again.");
+    }
 });
 
-// Create folder
+// Create a new folder
 createFolderButton.addEventListener("click", async () => {
     const folderName = prompt("Enter folder name:");
     if (!folderName) return;
 
-    await addDoc(collection(db, "folders"), { name: folderName });
-    alert(`Folder "${folderName}" created successfully.`);
-    loadFolders();
+    try {
+        const newFolder = {
+            name: folderName,
+            parentID: null, // Default to null if creating a root folder
+            isDeleted: false, // Default to false (not deleted)
+        };
+
+        await addDoc(collection(db, "folders"), newFolder);
+        console.log("Folder created:", newFolder);
+        loadFolders();
+    } catch (error) {
+        console.error("Error creating folder:", error);
+        alert("Error creating folder. Please try again later.");
+    }
 });
 
-// Load images
-async function loadImages(folderId) {
-    const querySnapshot = await getDocs(query(collection(db, "images"), where("folderId", "==", folderId)));
-    const images = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    displayImages(images);
-}
-
-function displayImages(images) {
-    imageList.innerHTML = "";
-    images.forEach((image) => {
-        const li = document.createElement("li");
-        li.textContent = image.name;
-        imageList.appendChild(li);
-    });
-}
-
-// Upload image
-uploadImageButton.addEventListener("click", async () => {
-    const file = imageUploadInput.files[0];
-    if (!file) return alert("No file selected.");
-
-    const storageRef = ref(storage, `images/${selectedFolderId}/${file.name}`);
-    await uploadBytes(storageRef, file);
-
-    const downloadURL = await getDownloadURL(storageRef);
-    await addDoc(collection(db, "images"), { name: file.name, folderId: selectedFolderId, url: downloadURL });
-
-    alert("Image uploaded successfully!");
-    loadImages(selectedFolderId);
+// Listen for real-time updates from Firestore
+onSnapshot(collection(db, "folders"), snapshot => {
+    const folders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    displayFolders(folders);
 });
+
+// Initialize app and load root folders
+loadFolders();

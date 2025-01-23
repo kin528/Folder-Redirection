@@ -50,6 +50,7 @@ body {
     display: none;
 }
 
+
 #authSection input {
     width: 100%;
     padding: 10px;
@@ -57,6 +58,11 @@ body {
     border: 1px solid #ddd;
     border-radius: 5px;
 }
+
+.hidden {
+    display: none;
+}
+
 
 .container {
     max-width: 800px;
@@ -98,14 +104,6 @@ li {
     border: 1px solid #ddd;
     border-radius: 5px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-}
-
-.folder-icon {
-    width: 24px; /* Adjust size as needed */
-    height: auto;
-    margin-right: 10px;
 }
 
 .hidden {
@@ -119,3 +117,4 @@ li {
         margin-bottom: 10px;
     }
 }
+

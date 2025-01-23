@@ -100,7 +100,7 @@ async function loadFolders(parentID = null, isDeleted = false) {
     }
 }
 
-// Display folders with icons
+// Display folders
 function displayFolders(folders) {
     folderList.innerHTML = "";
     if (folders.length === 0) {
@@ -109,17 +109,7 @@ function displayFolders(folders) {
     }
     folders.forEach((folder) => {
         const li = document.createElement("li");
-
-        // Create folder icon image element
-        const folderIcon = document.createElement("img");
-        folderIcon.src = "folder-icon.png"; // Replace with your folder icon path
-        folderIcon.classList.add("folder-icon");
-        li.appendChild(folderIcon);
-
-        // Add folder name text
-        const folderName = document.createElement("span");
-        folderName.textContent = folder.name;
-        li.appendChild(folderName);
+        li.textContent = folder.name;
 
         // Add click event to open folder details
         li.addEventListener("click", () => {
@@ -188,6 +178,8 @@ onSnapshot(collection(db, "folders"), snapshot => {
     const folders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     displayFolders(folders);
 });
+
+
 
 // Initialize app and load root folders
 loadFolders();

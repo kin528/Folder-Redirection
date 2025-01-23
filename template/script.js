@@ -100,7 +100,7 @@ async function loadFolders(parentID = null, isDeleted = false) {
     }
 }
 
-// Display folders
+// Display folders with icons
 function displayFolders(folders) {
     folderList.innerHTML = "";
     if (folders.length === 0) {
@@ -109,7 +109,17 @@ function displayFolders(folders) {
     }
     folders.forEach((folder) => {
         const li = document.createElement("li");
-        li.textContent = folder.name;
+
+        // Create folder icon image element
+        const folderIcon = document.createElement("img");
+        folderIcon.src = "folder-icon.png"; // Replace with your folder icon path
+        folderIcon.classList.add("folder-icon");
+        li.appendChild(folderIcon);
+
+        // Add folder name text
+        const folderName = document.createElement("span");
+        folderName.textContent = folder.name;
+        li.appendChild(folderName);
 
         // Add click event to open folder details
         li.addEventListener("click", () => {

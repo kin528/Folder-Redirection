@@ -28,8 +28,10 @@ const loginButton = document.getElementById("loginButton");
 const signupButton = document.getElementById("signupButton");
 const logoutButton = document.getElementById("logoutButton");
 const folderList = document.getElementById("fileList");
-const deleteStatusButton = document.getElementById("deleteStatusButton");
 const createFolderButton = document.getElementById("createFolderButton");
+
+// Track the current parent ID for folder navigation
+let currentParentID = null;
 
 // Login event
 loginButton.addEventListener("click", async () => {
@@ -85,6 +87,7 @@ onAuthStateChanged(auth, (user) => {
 // Function to load folders
 async function loadFolders(parentID = null, isDeleted = false) {
     try {
+        currentParentID = parentID; // Update the current parent ID
         const folderQuery = query(
             collection(db, "folders"),
             where("parentID", "==", parentID),
@@ -93,7 +96,7 @@ async function loadFolders(parentID = null, isDeleted = false) {
 
         const querySnapshot = await getDocs(folderQuery);
         const folders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        displayFolders(folders);
+        displayFolders(folders, parentID);
     } catch (error) {
         console.error("Error loading folders:", error);
         alert("Error loading folders. Please try again later.");
@@ -101,85 +104,125 @@ async function loadFolders(parentID = null, isDeleted = false) {
 }
 
 // Display folders
-function displayFolders(folders) {
+function displayFolders(folders, parentID) {
     folderList.innerHTML = "";
+
+    // Add a back button if not in the root folder
+    if (parentID) {
+        const backButton = document.createElement("button");
+        backButton.textContent = "Back";
+        backButton.style.marginBottom = "10px";
+        backButton.addEventListener("click", () => {
+            loadFolders(getParentID(parentID)); // Load the parent folder
+        });
+        folderList.appendChild(backButton);
+    }
+
+    // Create a container for folders
+    const folderContainer = document.createElement("div");
+    folderContainer.style.display = "grid";
+    folderContainer.style.gridTemplateColumns = "repeat(auto-fill, minmax(150px, 1fr))";
+    folderContainer.style.gap = "20px";
+    folderContainer.style.marginTop = "10px";
+
     if (folders.length === 0) {
-        folderList.innerHTML = "<li>Empty.</li>";
+        folderList.innerHTML += "<p>No folders found.</p>";
         return;
     }
-    folders.forEach((folder) => {
-        const li = document.createElement("li");
-        li.textContent = folder.name;
 
-        // Add click event to open folder details
-        li.addEventListener("click", () => {
+    folders.forEach((folder) => {
+        const folderCard = document.createElement("div");
+        folderCard.style.display = "flex";
+        folderCard.style.flexDirection = "column";
+        folderCard.style.alignItems = "center";
+        folderCard.style.justifyContent = "center";
+        folderCard.style.border = "1px solid #ccc";
+        folderCard.style.borderRadius = "8px";
+        folderCard.style.padding = "10px";
+        folderCard.style.backgroundColor = "#f9f9f9";
+        folderCard.style.cursor = "pointer";
+
+        // Folder icon
+        const folderIcon = document.createElement("span");
+        folderIcon.innerHTML = "📁"; // Use an emoji or replace with a Font Awesome icon
+        folderIcon.style.fontSize = "40px";
+        folderIcon.style.marginBottom = "10px";
+
+        // Folder name
+        const folderName = document.createElement("span");
+        folderName.textContent = folder.name;
+        folderName.style.textAlign = "center";
+
+        // Delete button
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.style.marginTop = "10px";
+        deleteButton.style.padding = "5px 10px";
+        deleteButton.style.border = "none";
+        deleteButton.style.borderRadius = "4px";
+        deleteButton.style.backgroundColor = "#ff4d4d";
+        deleteButton.style.color = "#fff";
+        deleteButton.style.cursor = "pointer";
+
+        deleteButton.addEventListener("click", async (e) => {
+            e.stopPropagation(); // Prevent the click event from opening the folder
+            const confirmDelete = confirm(`Are you sure you want to delete the folder "${folder.name}"?`);
+            if (confirmDelete) {
+                try {
+                    await deleteDoc(doc(db, "folders", folder.id));
+                    alert(`Folder "${folder.name}" deleted successfully.`);
+                    loadFolders(currentParentID); // Reload current folder after deletion
+                } catch (error) {
+                    console.error("Error deleting folder:", error);
+                    alert("Failed to delete folder. Please try again.");
+                }
+            }
+        });
+
+        folderCard.addEventListener("click", () => {
             loadFolders(folder.id); // Load subfolders if any
         });
 
-        folderList.appendChild(li);
+        // Append elements to folder card
+        folderCard.appendChild(folderIcon);
+        folderCard.appendChild(folderName);
+        folderCard.appendChild(deleteButton);
+
+        // Add the folder card to the container
+        folderContainer.appendChild(folderCard);
     });
+
+    // Append the folder container to the list
+    folderList.appendChild(folderContainer);
 }
 
-// Delete Status button logic
-deleteStatusButton.addEventListener("click", async () => {
-    try {
-        const folderName = prompt("Enter the name of the folder you want to delete:");
-        if (!folderName) {
-            alert("No folder name entered. Operation cancelled.");
-            return;
-        }
+// Get parent ID of the current folder
+async function getParentID(folderID) {
+    const folderRef = doc(db, "folders", folderID);
+    const folderSnapshot = await getDocs(folderRef);
+    return folderSnapshot.data()?.parentID || null;
+}
 
-        const folderQuery = query(collection(db, "folders"), where("name", "==", folderName));
-        const querySnapshot = await getDocs(folderQuery);
-
-        if (querySnapshot.empty) {
-            alert(`No folder found with the name "${folderName}".`);
-            return;
-        }
-
-        querySnapshot.forEach(async (docSnapshot) => {
-            await deleteDoc(doc(db, "folders", docSnapshot.id));
-            console.log(`Deleted folder with ID: ${docSnapshot.id}`);
-        });
-
-        alert(`Folder "${folderName}" deleted successfully.`);
-        loadFolders();
-    } catch (error) {
-        console.error("Delete status error:", error);
-        alert("Failed to delete status. Please try again.");
-    }
-});
-
-// Create a new folder (with parent-child relationship)
+// Create a new folder
 createFolderButton.addEventListener("click", async () => {
     const folderName = prompt("Enter folder name:");
     if (!folderName) return;
 
-    const parentFolderID = prompt("Enter the parent folder ID (leave empty for root):");
-
     try {
         const newFolder = {
             name: folderName,
-            parentID: parentFolderID || null, // If no parent ID is provided, set it to null (root folder)
+            parentID: currentParentID || null, // Set to current folder or root
             isDeleted: false, // Default to false (not deleted)
         };
 
         await addDoc(collection(db, "folders"), newFolder);
-        console.log("Folder created:", newFolder);
-        loadFolders(); // Reload the folder list after creation
+        alert("Folder created successfully.");
+        loadFolders(currentParentID); // Reload the folder list
     } catch (error) {
         console.error("Error creating folder:", error);
         alert("Error creating folder. Please try again later.");
     }
 });
-
-
-// Listen for real-time updates from Firestore
-onSnapshot(collection(db, "folders"), snapshot => {
-    const folders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    displayFolders(folders);
-});
-
 
 // Initialize app and load root folders
 loadFolders();

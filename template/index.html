@@ -17,38 +17,26 @@
             <button id="signupButton">Sign Up</button>
         </div>
 
-        <!-- Sign Up Section -->
-        <div id="signUpSection" class="hidden">
-            <h1>Create Account</h1>
-            <input type="text" id="username" placeholder="Username">
-            <input type="email" id="signupEmail" placeholder="Email">
-            <input type="password" id="signupPassword" placeholder="Password">
-            <button id="createAccountButton">Create Account</button>
-            <button id="backToLoginButton">Back to Login</button>
-        </div>
-
         <!-- Folder Management Section -->
         <div id="folderSection" class="hidden">
-            <!-- Upload Folder Section -->
-            <div class="upload-folder">
-                <h1>Upload Your Folder</h1>
-                <p>Select a folder to upload:</p>
-                <input type="file" id="folderUpload" webkitdirectory multiple>
-                <button id="uploadButton">Upload Folder</button>
-                <button id="deleteStatusButton">Delete Status</button>
-            </div>
-
-            <!-- Create Folder Section -->
-            <div class="create-folder">
-                <h1>Create a New Folder</h1>
+            <h1>Folder Management</h1>
+            <div class="folder-actions">
                 <button id="createFolderButton">Create Folder</button>
+                <button id="deleteStatusButton">Delete Folder</button>
             </div>
 
-            <!-- Status Section -->
             <div id="status" class="status">
-                <h2>Status</h2>
+                <h2>Folders</h2>
                 <ul id="fileList"></ul>
             </div>
+
+            <div id="folderContent" class="hidden">
+                <h2 id="currentFolderName">Current Folder:</h2>
+                <input type="file" id="imageUpload" accept="image/*">
+                <button id="uploadImageButton">Upload Image</button>
+                <ul id="imageList"></ul>
+            </div>
+
             <button id="logoutButton">Logout</button>
         </div>
     </div>

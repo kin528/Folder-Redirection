@@ -1,8 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, addDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
-"https://www.gstatic.com/firebasejs/11.2.0/firebase-firestore.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -29,6 +28,10 @@ const loginButton = document.getElementById("loginButton");
 const signupButton = document.getElementById("signupButton");
 const logoutButton = document.getElementById("logoutButton");
 const folderList = document.getElementById("fileList");
+const deleteStatusButton = document.getElementById("deleteStatusButton");
+const uploadButton = document.getElementById("uploadButton");
+const createFolderButton = document.getElementById("createFolderButton");
+const folderUploadInput = document.getElementById("folderUpload");
 
 // Login event
 loginButton.addEventListener("click", async () => {
@@ -81,7 +84,7 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// Folder management logic remains unchanged
+// Function to load folders
 async function loadFolders(parentID = null, isDeleted = false) {
     try {
         const folderQuery = query(
@@ -100,7 +103,6 @@ async function loadFolders(parentID = null, isDeleted = false) {
 }
 
 function displayFolders(folders) {
-    const folderList = document.getElementById("fileList");
     folderList.innerHTML = "";
     if (folders.length === 0) {
         folderList.innerHTML = "<li>Empty.</li>";
@@ -119,6 +121,52 @@ function displayFolders(folders) {
     });
 }
 
+// Delete Status button logic
+deleteStatusButton.addEventListener("click", async () => {
+    try {
+        const statusId = prompt("Enter the ID of the status you want to delete:");
+        if (!statusId) {
+            alert("No ID entered. Operation cancelled.");
+            return;
+        }
+
+        // Delete the status from Firestore
+        await deleteDoc(doc(db, "folders", statusId));
+        alert("Status deleted successfully.");
+
+        // Reload the folder list
+        loadFolders();
+    } catch (error) {
+        console.error("Delete status error:", error);
+        alert("Failed to delete status. Please try again.");
+    }
+});
+
+// Create a new folder
+createFolderButton.addEventListener("click", async () => {
+    const folderName = prompt("Enter folder name:");
+    if (!folderName) return;
+
+    try {
+        const newFolder = {
+            name: folderName,
+            parentID: null, // Default to null if creating a root folder
+            isDeleted: false, // Default to false (not deleted)
+        };
+
+        // Add new folder to Firestore
+        await addDoc(collection(db, "folders"), newFolder);
+        console.log("Folder created:", newFolder);
+
+        // Reload folders after creating a new one
+        loadFolders();
+    } catch (error) {
+        console.error("Error creating folder:", error);
+        alert("Error creating folder. Please try again later.");
+    }
+});
+
+// Upload folder (dummy implementation for now)
 uploadButton.addEventListener("click", () => {
     if (folderUploadInput.files.length === 0) {
         alert("Please select a folder to upload.");
@@ -129,55 +177,9 @@ uploadButton.addEventListener("click", () => {
 
 // Listen for real-time updates from Firestore
 onSnapshot(collection(db, "folders"), snapshot => {
-  const folders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  displayFolders(folders);
+    const folders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    displayFolders(folders);
 });
-
-// Create a new folder
-createFolderButton.addEventListener("click", async () => {
-  const folderName = prompt("Enter folder name:");
-  if (!folderName) return;
-
-  try {
-    const newFolder = {
-      name: folderName,
-      parentID: null, // Default to null if creating a root folder
-      isDeleted: false, // Default to false (not deleted)
-    };
-
-    // Add new folder to Firestore
-    await addDoc(collection(db, "folders"), newFolder);
-    console.log("Folder created:", newFolder);
-
-    // Reload folders after creating a new one
-    loadFolders();
-  } catch (error) {
-    console.error("Error creating folder:", error);
-    alert("Error creating folder. Please try again later.");
-  }
-});
-
-// Upload folder (dummy implementation for now)
-uploadButton.addEventListener("click", () => {
-  if (folderUploadInput.files.length === 0) {
-    alert("Please select a folder to upload.");
-    return;
-  }
-  alert("Folder upload is not implemented yet.");
-});
-
-deleteStatusButton.addEventListener("click", async () => {
-    const statusId = ""; // Replace with the ID of the status you want to delete
-
-    try {
-        await deleteDoc(doc(db, "statuses", statusId));
-        alert("Status deleted successfully.");
-    } catch (error) {
-        console.error("Delete status error:", error);
-        alert("Failed to delete status. Please try again.");
-    }
-});
-
 
 // Initialize app and load root folders
-loadFolders(); // Load root folders (parentID = null)
+loadFolders();

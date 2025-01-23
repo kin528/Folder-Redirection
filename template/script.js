@@ -173,12 +173,13 @@ createFolderButton.addEventListener("click", async () => {
     }
 });
 
+
+
 // Listen for real-time updates from Firestore
 onSnapshot(collection(db, "folders"), snapshot => {
     const folders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     displayFolders(folders);
 });
-
 
 
 // Initialize app and load root folders

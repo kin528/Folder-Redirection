@@ -111,7 +111,6 @@ function displayFolders(folders) {
     folders.forEach((folder) => {
         const li = document.createElement("li");
         li.textContent = folder.name;
-        li.dataset.id = folder.id;
 
         li.addEventListener("click", () => {
             loadFolders(folder.id);
@@ -121,18 +120,31 @@ function displayFolders(folders) {
     });
 }
 
-// Delete Status button logic
+// Delete Status button logic without data-id
 deleteStatusButton.addEventListener("click", async () => {
     try {
-        const statusId = prompt("Enter the ID of the status you want to delete:");
-        if (!statusId) {
-            alert("No ID entered. Operation cancelled.");
+        const folderName = prompt("Enter the name of the folder you want to delete:");
+        if (!folderName) {
+            alert("No folder name entered. Operation cancelled.");
             return;
         }
 
-        // Delete the status from Firestore
-        await deleteDoc(doc(db, "folders", statusId));
-        alert("Status deleted successfully.");
+        // Query Firestore to find the folder by name
+        const folderQuery = query(collection(db, "folders"), where("name", "==", folderName));
+        const querySnapshot = await getDocs(folderQuery);
+
+        if (querySnapshot.empty) {
+            alert(`No folder found with the name "${folderName}".`);
+            return;
+        }
+
+        // Delete the folder(s) found
+        querySnapshot.forEach(async (docSnapshot) => {
+            await deleteDoc(doc(db, "folders", docSnapshot.id));
+            console.log(`Deleted folder with ID: ${docSnapshot.id}`);
+        });
+
+        alert(`Folder "${folderName}" deleted successfully.`);
 
         // Reload the folder list
         loadFolders();
